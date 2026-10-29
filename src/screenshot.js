@@ -48,21 +48,24 @@ export async function captureScreenshot(url, key) {
     }
   };
 
-  const job = await request('/v1/screenshot', {
+  await request('/v1/screenshot', {
     method: 'POST',
     body: JSON.stringify(body)
   });
 
+  // Wait for the image to appear in S3, rather than polling the job status.
+  // The service runs on more than one machine and keeps jobs in memory, so
+  // a status request can go to a machine that doesn't know about the job.
+  const { bucket, region, key: s3Key } = body.storage;
+  const imageUrl = `https://${bucket}.s3.${region}.amazonaws.com/${s3Key}`;
+
   const started = Date.now();
   while (Date.now() - started < POLL_TIMEOUT) {
     await sleep(POLL_INTERVAL);
-    const status = await request(`/v1/status/${job.jobId}`);
+    const response = await fetch(imageUrl, { method: 'HEAD' });
 
-    if (status.status === 'completed') {
-      return status.result.url;
-    }
-    if (status.status === 'failed') {
-      throw new Error(`Screenshot failed for ${url}: ${status.error}`);
+    if (response.ok) {
+      return imageUrl;
     }
   }
 
