@@ -15,7 +15,7 @@ Anyone who mentions the bot, follower or not, gets a reply with their stats. Peo
 
 Every post mentions the follower and includes a link card to their Post Milestone page, using a screenshot of their `/social-share` page as the image.
 
-The bot runs once an hour and exits. Followers get at most one scheduled post per run.
+The bot runs every 5 minutes and exits. Followers get at most one scheduled post per run.
 
 ## Project Structure
 
@@ -86,7 +86,7 @@ railway init
 railway up
 ```
 
-Set the environment variables from `.env.example` in the Railway dashboard. `railway.json` runs the bot every hour (`0 * * * *`).
+Set the environment variables from `.env.example` in the Railway dashboard. `railway.json` runs the bot every 5 minutes (`*/5 * * * *`).
 
 Check the logs with:
 
