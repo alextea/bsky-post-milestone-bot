@@ -12,7 +12,8 @@ const config = {
 };
 
 const POLL_INTERVAL = 2000;
-const POLL_TIMEOUT = 60000;
+// The service can take a while when it is busy, as it runs 3 jobs at a time
+const POLL_TIMEOUT = 120000;
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
