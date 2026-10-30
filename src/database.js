@@ -42,6 +42,43 @@ export async function createTables() {
       posted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+
+  // The post a reply was made to
+  await pool.query('ALTER TABLE bot_posts ADD COLUMN IF NOT EXISTS subject_uri TEXT');
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bot_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `);
+}
+
+export async function getState(key) {
+  const result = await pool.query('SELECT value FROM bot_state WHERE key = $1', [key]);
+  return result.rows.length > 0 ? result.rows[0].value : null;
+}
+
+export async function setState(key, value) {
+  await pool.query(
+    `INSERT INTO bot_state (key, value) VALUES ($1, $2)
+     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+    [key, value]
+  );
+}
+
+export async function hasRepliedTo(subjectUri) {
+  const result = await pool.query('SELECT 1 FROM bot_posts WHERE subject_uri = $1 LIMIT 1', [subjectUri]);
+  return result.rows.length > 0;
+}
+
+export async function countRecentReplies(did, hours) {
+  const result = await pool.query(
+    `SELECT COUNT(*) AS count FROM bot_posts
+     WHERE did = $1 AND post_type = 'reply' AND posted_at > NOW() - INTERVAL '1 hour' * $2`,
+    [did, hours]
+  );
+  return parseInt(result.rows[0].count, 10);
 }
 
 export async function getFollowers() {
@@ -86,10 +123,10 @@ export async function updateFollower(did, fields) {
   );
 }
 
-export async function recordPost(did, postType, milestone, postUri) {
+export async function recordPost(did, postType, milestone, postUri, subjectUri = null) {
   await pool.query(
-    'INSERT INTO bot_posts (did, post_type, milestone, post_uri) VALUES ($1, $2, $3, $4)',
-    [did, postType, milestone, postUri]
+    'INSERT INTO bot_posts (did, post_type, milestone, post_uri, subject_uri) VALUES ($1, $2, $3, $4, $5)',
+    [did, postType, milestone, postUri, subjectUri]
   );
 }
 

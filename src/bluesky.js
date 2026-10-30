@@ -28,8 +28,9 @@ export async function initBluesky() {
 /**
  * Create a post with a link card
  * Mentions in the text are turned into facets, which notify the mentioned user
+ * Pass reply as { root, parent }, each { uri, cid }, to reply to a post
  */
-export async function createPost(text, link) {
+export async function createPost(text, link, reply = null) {
   if (!agent) {
     await initBluesky();
   }
@@ -43,6 +44,10 @@ export async function createPost(text, link) {
       facets: rt.facets,
       createdAt: new Date().toISOString()
     };
+
+    if (reply) {
+      postRecord.reply = reply;
+    }
 
     if (link) {
       const external = {
@@ -74,6 +79,10 @@ export async function createPost(text, link) {
     console.error('Error creating post:', error);
     throw error;
   }
+}
+
+export function getAgent() {
+  return agent;
 }
 
 export function getPublicAgent() {

@@ -11,9 +11,11 @@ Following the bot opts you in, unfollowing opts you out. Each follower gets:
 - a weekly progress update towards their next milestone (day configurable)
 - an anniversary post on the day they joined Bluesky
 
+Anyone who mentions the bot, follower or not, gets a reply with their stats. People who don't follow the bot are asked to follow it for updates.
+
 Every post mentions the follower and includes a link card to their Post Milestone page, using a screenshot of their `/social-share` page as the image.
 
-The bot runs once an hour and exits. Followers get at most one post per run.
+The bot runs once an hour and exits. Followers get at most one scheduled post per run.
 
 ## Project Structure
 
@@ -24,6 +26,7 @@ The bot runs once an hour and exits. Followers get at most one post per run.
 │   ├── config.js         # Schedule and limit settings
 │   ├── database.js       # PostgreSQL database queries
 │   ├── followers.js      # Syncs followers from Bluesky
+│   ├── mentions.js       # Fetches posts that mention the bot
 │   ├── schedule.js       # Decides which post each follower is due
 │   ├── screenshot.js     # Screenshot service client
 │   └── stats.js          # Profiles and milestone stats
@@ -37,8 +40,9 @@ The bot runs once an hour and exits. Followers get at most one post per run.
 ## How it works
 
 1. Fetch everyone following the bot and their post counts, and update the `followers` table. New followers start with their next milestone set from their current post count.
-2. For each follower, pick the post they are due, in this order: welcome, milestone, anniversary, weekly update.
-3. For each post, fetch the follower's stats from the web app's `/api/info/:handle` endpoint, screenshot `/social-share/:handle/:type`, and post with a link card to `/info/:handle`.
+2. Reply to posts that have mentioned the bot since the last run. Replies to the bot's own posts only count if they mention the bot too, so people saying thanks don't get their stats back. Each person gets at most 3 replies a day.
+3. For each follower, pick the post they are due, in this order: welcome, milestone, anniversary, weekly update.
+4. For each post, fetch the follower's stats from the web app's `/api/info/:handle` endpoint, screenshot `/social-share/:handle/:type`, and post with a link card to `/info/:handle`.
 
 The bot needs the web app to be deployed with the `/api/info` and `/social-share/:handle/:type` routes.
 

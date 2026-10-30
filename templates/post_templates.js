@@ -31,11 +31,25 @@ export const ANNIVERSARY_TEMPLATES = [
   (s) => `🎂 ${years(s.ageYears)} on Bluesky! Happy anniversary, @${s.handle}. You've averaged ${n(s.averagePosts)} posts a day.`
 ];
 
+// Replies to people who mention the bot
+export const REPLY_TEMPLATES = [
+  (s) => `📊 @${s.handle}, you're on ${n(s.postCount)} posts, ${n(s.postDifference)} to go until ${n(s.nextMilestone)}.`,
+  (s) => `📊 @${s.handle}, you've posted ${n(s.postCount)} times, averaging ${n(s.averagePosts)} a day. Your next milestone is ${n(s.nextMilestone)}.`,
+  (s) => `📊 @${s.handle}, you're ${n(s.postDifference)} posts from ${n(s.nextMilestone)}. Post at least ${timesADay(s.postTimes)} to get there by your next anniversary.`
+];
+
+// The same, with a nudge to follow for people who don't already
+export const REPLY_FOLLOW_TEMPLATES = REPLY_TEMPLATES.map(template =>
+  (s) => `${template(s)}\n\nFollow me and I'll let you know when you get there.`
+);
+
 const TEMPLATES = {
   welcome: WELCOME_TEMPLATES,
   milestone: MILESTONE_TEMPLATES,
   progress: PROGRESS_TEMPLATES,
-  anniversary: ANNIVERSARY_TEMPLATES
+  anniversary: ANNIVERSARY_TEMPLATES,
+  reply: REPLY_TEMPLATES,
+  reply_follow: REPLY_FOLLOW_TEMPLATES
 };
 
 // Get random template
@@ -69,7 +83,9 @@ export function formatLinkCard(type, stats, milestone) {
     welcome: `${stats.handle}'s post milestone`,
     milestone: `${stats.handle} reached ${n(milestone)} posts`,
     progress: `${stats.handle} is ${n(stats.postDifference)} posts from ${n(stats.nextMilestone)}`,
-    anniversary: `${stats.handle} has been on Bluesky for ${years(stats.ageYears)}`
+    anniversary: `${stats.handle} has been on Bluesky for ${years(stats.ageYears)}`,
+    reply: `${stats.handle}'s post milestone`,
+    reply_follow: `${stats.handle}'s post milestone`
   };
 
   return {
